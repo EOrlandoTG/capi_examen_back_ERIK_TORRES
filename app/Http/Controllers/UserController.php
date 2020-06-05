@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Carbon\Carbon;
+use App\User;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -13,7 +16,25 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        $users = DB::table('users')
+                ->join('addresses', 'users.id', '=', 'addresses.user_id')
+                ->select('users.name', 'users.birthdate',  DB::raw('CONCAT(addresses.street, " ", addresses.number, ", ", addresses.district, ", ", addresses.zip, ", ", addresses.city) as address'))
+                ->get();
+
+        self::calculateAge($users);
+
+                /*return response()->json([
+                    "users" => $users
+                ], 200);*/
+                //return User::all();
+
+        return $users;
+    }
+
+    public function calculateAge($users)
+    {
+        foreach ($users as $user)
+        $user->age = Carbon::parse($user->birthdate)->age;
     }
 
     /**
